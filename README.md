@@ -10,5 +10,5 @@
 
 # bot vs bot  
 ``
-python3 -m gfootball.play_game --action_full --players=bot:left_player=1
+python3 -m gfootball.play_game --real_time=False --action_full --players=bot:left_player=1 --level=11_vs_11_hard_stochastic
 ``

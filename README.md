@@ -6,3 +6,9 @@
 - マルチエージェント対応  
 - 並列処理  
 - GCN構築  
+
+
+# bot vs bot  
+``
+python3 -m gfootball.play_game --action_full --players=bot:left_player=1
+``

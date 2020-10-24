@@ -19,5 +19,8 @@ git clone https://github.com/google-research/football.git
 cd football
 ``  
 ``
+docker build --build-arg DOCKER_BASE=tensorflow/tensorflow:1.15.2-gpu-py3 --build-arg DEVICE=gpu . -t gfootball
+``
+``
 nvidia-docker run -it -e TZ=Asia/Tokyo,LANG=ja_JP.UTF-8 -v foo/:/foo gfootball
 ``

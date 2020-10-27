@@ -26,25 +26,20 @@ from utils import make_env, convert_tensor_obs
 OUTPUT_DIR = 'log/gomi'
 
 NUM_ENVS = 16
+NUM_STEPS = 50000000  # Number of steps
+PER_STEPS = 512  # Update parameters per steps
 
-GAMMA = 0.99 # 報酬の割引率
-
-NUM_STEPS = 50000000 # 総ステップ数
-PER_STEPS = 512 # updateするタイミング
-
-
-NUM_EPOCHS = 8
-
-
-CLIP_PARAM = 0.2 # PPOのやつ
-MAX_GRAD_NORM = 0.5
-
-N_MINI_BATCH = 8
+GAMMA = 0.99  # Discount rate for reward
+CLIP_PARAM = 0.2  # Hyperparameter of the PPO
+MAX_GRAD_NORM = 0.5  # Max gradient norm (clipping)
+NUM_EPOCHS = 8  # Number of update epochs
+N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
 # model
 MODEL_NAME = 'MLP'
 # optimizer
 LR = 0.0001
+EPS = 1e-5
 # device
 DEVICE = '0'
 # environment
@@ -145,7 +140,7 @@ model = ActorCritic(obs_shape, action_space, MODEL_NAME)
 print('\n')
 print('# AdamOptimizer')
 print('# Learning rage: {}'.foramt(LR))
-optimizer = optimz.Adam(model.parameters(), lr=LR, eps=1e-5)
+optimizer = optimz.Adam(model.parameters(), lr=LR, eps=EPS)
 
 
 # Device

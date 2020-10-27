@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class ActorCritic(nn.Module):
     def __init__(self, obs_shape, action_space, model_name):
-        super().__init__()
+        super(ActorCritic, self).__init__()
 
         if model_name == 'mlp':
             from models.mlp import MLP as Model

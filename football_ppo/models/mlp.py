@@ -13,7 +13,7 @@ def init_layer(m):
 
 class MLP(nn.Module):
     def __init__(self, num_inputs):
-        super().__init__()
+        super(MLP, self).__init__()
 
         self.linear1 = init_layer(nn.Linear(num_inputs, 64))
         self.linear2 = init_layer(nn.Linear(64, 128))

@@ -1,5 +1,6 @@
 import gym
 import gfootball
+import torch
 
 
 def make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT):
@@ -8,7 +9,7 @@ def make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT):
         stacked=False,
         representation=REPRESENTATION,
         rewards=REWARDS,
-        logdir='./temp_log',
+        logdir='',
         write_goal_dumps=False,
         write_full_episode_dumps=False,
         render=False,

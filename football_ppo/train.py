@@ -11,6 +11,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 import gym
+gym.logger.set_level(40)
 import gfootball
 
 from memory import RolloutStorage
@@ -21,7 +22,7 @@ from utils import make_env, convert_tensor_obs
 ############## Hyperparameters ##############
 OUTPUT_DIR = 'log/gomi'
 
-NUM_ENVS = 4
+NUM_ENVS = 16
 NUM_STEPS = 50000000  # Number of steps
 PER_STEPS = 512  # Update parameters per steps
 
@@ -32,12 +33,12 @@ NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
 # model
-MODEL_NAME = 'MLP'
+MODEL_NAME = 'mlp'
 # optimizer
 LR = 0.0001
 EPS = 1e-5
 # device
-DEVICE = '0'
+DEVICE = 'cuda:0'
 # environment
 ENV_NAME = '11_vs_11_stochastic'
 REPRESENTATION = 'simple115v2'
@@ -107,13 +108,12 @@ def main():
     envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in
             range(NUM_ENVS)]
     envs = SubprocVecEnv(envs, context=None)
-    obs_shape = envs.observation_space.shape
-    action_space = envs.action_space
-    current_obs = torch.zeros(NUM_ENVS, *obs_shape)
+    obs_shape = envs.observation_space.shape[0]
+    action_space = envs.action_space.n
+    current_obs = torch.zeros(NUM_ENVS, obs_shape)
     obs = envs.reset()
     current_obs = convert_tensor_obs(obs, current_obs)
-    print('\n')
-    print('# Environment        : {}'.format(ENV_NAME))
+    print('\n# Environment        : {}'.format(ENV_NAME))
     print('# Representation     : {}'.format(REPRESENTATION))
     print('# Rewards            : {}'.format(REWARDS))
     print('# Observation shape  : {}'.format(obs_shape))
@@ -125,20 +125,17 @@ def main():
     rollouts = RolloutStorage(PER_STEPS, NUM_ENVS, obs_shape, action_space, current_obs)
 
     # load model
-    print('\n')
-    print('# Load model: {}'.format(MODEL_NAME))
+    print('\n# Load model: {}'.format(MODEL_NAME))
     model = ActorCritic(obs_shape, action_space, MODEL_NAME)
 
     # optimizer
-    print('\n')
-    print('# AdamOptimizer')
+    print('\n# AdamOptimizer')
     print('# Learning rage: {}'.format(LR))
-    optimizer = optimz.Adam(model.parameters(), lr=LR, eps=EPS)
+    optimizer = optim.Adam(model.parameters(), lr=LR, eps=EPS)
 
     # Device
-    print('\n')
-    print('# Device: {}'.format(DEVICE))
-    if CUDA:
+    print('\n# Device: {}'.format(DEVICE))
+    if DEVICE is not None:
         model.to(DEVICE)
         rollouts.cuda(DEVICE)
         current_obs.to(DEVICE)
@@ -148,8 +145,8 @@ def main():
     final_rewards = torch.zeros([NUM_ENVS, 1])
     max_reward = 0
 
-    print('\n')
-    print('# Start! :)')
+    # start
+    print('\n# Start! :)')
     num_updates = int(NUM_STEPS // PER_STEPS // NUM_ENVS)
     for update_i in range(num_updates):
         for step in range(PER_STEPS):
@@ -157,7 +154,7 @@ def main():
                 value, action, action_log_prob = model.action(rollouts.observations[step])
 
             # step
-            obs, reward, done, info = envs.step(actions.squeeze(1).cpu().numpy())
+            obs, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
 
             # convert to pytorch tensor
             reward = torch.from_numpy(np.expand_dims(np.stack(reward), 1)).float()

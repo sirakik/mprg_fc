@@ -3,7 +3,7 @@ import gfootball
 import torch
 
 
-def make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT):
+def make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, iprocess):
     env = gfootball.env.create_environment(
         env_name=ENV_NAME,
         stacked=False,

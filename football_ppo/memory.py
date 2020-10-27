@@ -4,7 +4,7 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
 class RolloutStorage(object):
     def __init__(self, per_steps, num_processes, obs_shape, action_space, start_obs):
-        self.observations = torch.zeros(per_steps + 1, num_processes, *obs_shape)
+        self.observations = torch.zeros(per_steps + 1, num_processes, obs_shape)
         self.rewards = torch.zeros(per_steps, num_processes, 1)
         self.value_preds = torch.zeros(per_steps + 1, num_processes, 1)
         self.returns = torch.zeros(per_steps + 1, num_processes, 1)

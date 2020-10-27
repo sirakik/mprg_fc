@@ -11,14 +11,14 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functionla as F
+import torch.nn.functional as F
 
 import gym
 import gfootball
 
 from memory import RolloutStorage
 from actor_critic import ActorCritic
-from multiprocessing_env import SubprocVecEnv, VecNormalize
+from multiprocess import SubprocVecEnv, VecNormalize
 from utils import make_env, convert_tensor_obs
 
 
@@ -32,7 +32,7 @@ PER_STEPS = 512  # Update parameters per steps
 GAMMA = 0.99  # Discount rate for reward
 CLIP_PARAM = 0.2  # Hyperparameter of the PPO
 MAX_GRAD_NORM = 0.5  # Max gradient norm (clipping)
-NUM_EPOCHS = 8  # Number of update epochs
+NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
 # model
@@ -47,7 +47,7 @@ ENV_NAME = '11_vs_11_stochastic'
 REPRESENTATION = 'simple115v2'
 REWARDS = 'scoring,checkpoints'
 LEFT_AGENT = 1
-RIGHT_AGENT = 0
+RIGHT_AGENT = 0  # Not support RIGHT_AGENT > 0
 #############################################
 
 
@@ -92,13 +92,13 @@ def update_parames(rollouts, model, optimizer):
 
 
 # output dir
-if not os.path.existis(OUTPUT_DIR):
-    os.makedri(OUTPUT_DIR)
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
     with open(OUTPUT_DIR + '/log.csv', 'w') as file:
         writer = csv.writer(file)
         writer.writerow(['num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
 else:
-    print('# caution: output dir [{}] already exist.'.foramt(OUTPUT_DIR))
+    print('# caution: output dir [{}] already exist.'.format(OUTPUT_DIR))
     answer = input('# continue? [y/n]: ')
     if answer == 'y':
         pass
@@ -118,8 +118,8 @@ obs = envs.reset()
 current_obs = convert_tensor_obs(obs, current_obs)
 print('\n')
 print('# Environment        : {}'.format(ENV_NAME))
-print('# Representation     : {}'.foramt(REPRESENTATION))
-print('# Rewards            : {}'.foramt(REWARDS))
+print('# Representation     : {}'.format(REPRESENTATION))
+print('# Rewards            : {}'.format(REWARDS))
 print('# Observation shape  : {}'.format(obs_shape))
 print('# Action space       : {}'.format(action_space))
 print('# Num. of left agent : {}'.format(LEFT_AGENT))
@@ -139,7 +139,7 @@ model = ActorCritic(obs_shape, action_space, MODEL_NAME)
 # optimizer
 print('\n')
 print('# AdamOptimizer')
-print('# Learning rage: {}'.foramt(LR))
+print('# Learning rage: {}'.format(LR))
 optimizer = optimz.Adam(model.parameters(), lr=LR, eps=EPS)
 
 
@@ -212,5 +212,5 @@ for update_i in range(num_updates):
         torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_max_rewards.pt'))
         max_reward = mean_reward
 
-print('# Report: max reward: {}'.foramt(max_reward))
+print('# Report: max reward: {}'.format(max_reward))
 print('# bye :)')

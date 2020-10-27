@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data.sample import BatchSampler, SubsetRandomSampler
+from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
 
 class RolloutStorage(object):

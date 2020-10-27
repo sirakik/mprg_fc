@@ -1,7 +1,6 @@
 import numpy as np
 from multiprocessing import Process, Pipe
 
-import numpy as np
 class RunningMeanStd(object):
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
     def __init__(self, epsilon=1e-4, shape=()):

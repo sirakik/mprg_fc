@@ -2,6 +2,7 @@ import os
 import csv
 import copy
 import shutil
+import datetime
 import numpy as np
 from tqdm import tqdm
 
@@ -15,10 +16,11 @@ import gym
 gym.logger.set_level(40)
 import gfootball
 
-from football_ppo.tools.memory import RolloutStorage
-from football_ppo.tools.actor_critic import ActorCritic
+from tools.memory import RolloutStorage
+from tools.actor_critic import ActorCritic
+from tools.utils import make_env, convert_tensor_obs
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from football_ppo.tools.utils import make_env, convert_tensor_obs
+
 
 ############## Hyperparameters ##############
 OUTPUT_DIR = 'log/gomi'
@@ -94,12 +96,7 @@ def main():
     # output dir
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
-        print('# Report  : make dir -> [{}]'.foramt(OUTPUT_DIR))
-        # make csv file
-        with open(OUTPUT_DIR + '/log.csv', 'w') as file:
-            writer = csv.writer(file)
-            writer.writerow(['time', 'num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
-        print('# Report  : make csv file -> [{}]'.foramt(OUTPUT_DIR + '/log.csv'))
+        print('# Report  : make dir -> [{}]'.format(OUTPUT_DIR))
     else:
         print('# Caution : output dir [{}] already exist.'.format(OUTPUT_DIR))
         answer = input('# Asking  : continue? [y/n]: ')
@@ -108,6 +105,13 @@ def main():
         else:
             print('# John Doe: bye.')
             exit()
+
+    # make csv file
+    with open(OUTPUT_DIR + '/log.csv', 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(
+            ['time', 'num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
+    print('# Report  : make csv file -> [{}]'.format(OUTPUT_DIR + '/log.csv'))
 
     print('\n# John Doe: Prepare to train...')
     # parallelize environment
@@ -203,14 +207,14 @@ def main():
 
         rollouts.after_update()
 
-        mean_reward = final_rewards.mean()
+        mean_reward = final_rewards.mean().item()
         print('# Log     : policy loss: {:.5f} | value loss: {:.5f} | mean reward: {:.3f}'.format(
             policy_loss, value_loss, mean_reward))
 
         # logging csv
         with open(OUTPUT_DIR + '/log.csv', 'a') as file:
             writer = csv.writer(file)
-            writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, current_obs, mean_reward])
+            writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, entropy_loss, mean_reward])
 
         if update_i % SAVE_INTERVAL == 0:
             print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR, 'model_%i.pt' % update_i))

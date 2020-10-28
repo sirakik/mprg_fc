@@ -17,7 +17,7 @@ class ActorCritic(nn.Module):
         super(ActorCritic, self).__init__()
 
         if model_name == 'mlp':
-            from models.mlp import MLP as Model
+            from tools.models.mlp import MLP as Model
         else:
             raise ValueError('# Error   :Not expected model [{}].'.format(model_name))
 

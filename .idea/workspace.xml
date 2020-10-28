@@ -2,11 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f11ac4f2-51d7-4a82-8e94-1f83701db495" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/football_ppo/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/football_ppo/tools/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/football_ppo/tools/models/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/football_ppo/actor_critic.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/actor_critic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/football_ppo/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/football_ppo/actor_critic.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/tools/actor_critic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/football_ppo/evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/evaluate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/football_ppo/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/tools/memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/football_ppo/models/mlp.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/tools/models/mlp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/football_ppo/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/train.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/football_ppo/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/football_ppo/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/football_ppo/tools/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -17,11 +22,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="train.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="train.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/football_ppo/train.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-294">
-              <caret line="22" column="23" lean-forward="true" selection-start-line="22" selection-start-column="23" selection-end-line="22" selection-end-column="23" />
+            <state relative-caret-position="419">
+              <caret line="206" column="65" selection-start-line="206" selection-start-column="65" selection-end-line="206" selection-end-column="65" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -29,11 +34,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="actor_critic.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/football_ppo/actor_critic.py">
+      <file leaf-file-name="actor_critic.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/football_ppo/tools/actor_critic.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="28" column="76" lean-forward="true" selection-start-line="28" selection-start-column="76" selection-end-line="28" selection-end-column="76" />
+            <state relative-caret-position="120">
+              <caret line="8" column="24" lean-forward="true" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -41,7 +46,44 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="evaluate.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/football_ppo/evaluate.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="615">
+              <caret line="41" column="46" selection-start-line="41" selection-start-column="46" selection-end-line="41" selection-end-column="46" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/football_ppo/tools/utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="390">
+              <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="memory.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/football_ppo/tools/memory.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="15">
+              <caret line="5" column="60" selection-start-line="5" selection-start-column="60" selection-end-line="5" selection-end-column="60" />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -50,6 +92,9 @@
       <find>Sub</find>
       <find>SubprocVecEnv</find>
       <find>recv()</find>
+      <find>step</find>
+      <find>action</find>
+      <find>squeeze</find>
     </findStrings>
     <replaceStrings>
       <replace>format</replace>
@@ -63,23 +108,26 @@
       <list>
         <option value="$PROJECT_DIR$/football_ppo/multiprocess.py" />
         <option value="$PROJECT_DIR$/football_ppo/utils.py" />
-        <option value="$PROJECT_DIR$/football_ppo/memory.py" />
-        <option value="$PROJECT_DIR$/football_ppo/train.py" />
         <option value="$PROJECT_DIR$/football_ppo/actor_critic.py" />
+        <option value="$PROJECT_DIR$/football_ppo/evaluate.py" />
+        <option value="$PROJECT_DIR$/football_ppo/memory.py" />
+        <option value="$PROJECT_DIR$/football_ppo/tools/john_doe.py" />
+        <option value="$PROJECT_DIR$/football_ppo/tools/actor_critic.py" />
+        <option value="$PROJECT_DIR$/football_ppo/train.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1" />
     <option name="y" value="23" />
-    <option name="width" value="1195" />
-    <option name="height" value="1064" />
+    <option name="width" value="1046" />
+    <option name="height" value="1065" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -87,26 +135,19 @@
               <item name="mprg_fc" type="b2602c69:ProjectViewProjectNode" />
               <item name="mprg_fc" type="462c0819:PsiDirectoryNode" />
             </path>
-            <path>
-              <item name="mprg_fc" type="b2602c69:ProjectViewProjectNode" />
-              <item name="mprg_fc" type="462c0819:PsiDirectoryNode" />
-              <item name="football_ppo" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="mprg_fc" type="b2602c69:ProjectViewProjectNode" />
-              <item name="mprg_fc" type="462c0819:PsiDirectoryNode" />
-              <item name="football_ppo" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/football_ppo/tools" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -134,19 +175,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1" y="23" width="1195" height="1064" extended-state="0" />
+    <frame x="0" y="23" width="1046" height="1065" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21422595" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24474187" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="10" />
-      <window_info anchor="bottom" id="Run" order="2" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -160,6 +201,46 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/football_ppo/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="22" column="23" selection-start-line="22" selection-start-column="23" selection-end-line="22" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/actor_critic.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="28" column="76" selection-start-line="28" selection-start-column="76" selection-end-line="28" selection-end-column="76" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="22" column="23" lean-forward="true" selection-start-line="22" selection-start-column="23" selection-end-line="22" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/actor_critic.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="28" column="76" lean-forward="true" selection-start-line="28" selection-start-column="76" selection-end-line="28" selection-end-column="76" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/football_ppo/train.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="405">
@@ -189,27 +270,48 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/football_ppo/memory.py">
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/models/mlp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-44">
-          <caret line="6" column="70" selection-start-line="6" selection-start-column="70" selection-end-line="6" selection-end-column="70" />
+        <state relative-caret-position="75">
+          <caret line="5" column="18" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="18" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/football_ppo/utils.py">
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/john_doe.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="81" selection-start-line="5" selection-start-column="81" selection-end-line="5" selection-end-column="81" />
+        <state relative-caret-position="210">
+          <caret line="14" column="27" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/evaluate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="615">
+          <caret line="41" column="46" selection-start-line="41" selection-start-column="46" selection-end-line="41" selection-end-column="46" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/football_ppo/models/mlp.py">
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="18" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="18" />
+        <state relative-caret-position="390">
+          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/memory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="5" column="60" selection-start-line="5" selection-start-column="60" selection-end-line="5" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/football_ppo/tools/actor_critic.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="24" lean-forward="true" selection-start-line="8" selection-start-column="24" selection-end-line="8" selection-end-column="24" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
           </folding>
@@ -218,20 +320,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/football_ppo/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-294">
-          <caret line="22" column="23" lean-forward="true" selection-start-line="22" selection-start-column="23" selection-end-line="22" selection-end-column="23" />
+        <state relative-caret-position="419">
+          <caret line="206" column="65" selection-start-line="206" selection-start-column="65" selection-end-line="206" selection-end-column="65" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/football_ppo/actor_critic.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="28" column="76" lean-forward="true" selection-start-line="28" selection-start-column="76" selection-end-line="28" selection-end-column="76" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
           </folding>
         </state>
       </provider>

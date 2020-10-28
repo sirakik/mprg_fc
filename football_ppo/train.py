@@ -11,13 +11,14 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 import gym
+
 gym.logger.set_level(40)
 import gfootball
 
-from memory import RolloutStorage
-from actor_critic import ActorCritic
+from football_ppo.tools.memory import RolloutStorage
+from football_ppo.tools.actor_critic import ActorCritic
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from utils import make_env, convert_tensor_obs
+from football_ppo.tools.utils import make_env, convert_tensor_obs
 
 ############## Hyperparameters ##############
 OUTPUT_DIR = 'log/gomi'
@@ -32,6 +33,7 @@ MAX_GRAD_NORM = 0.5  # Max gradient norm (clipping)
 NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
+SAVE_INTERVAL = 500 # Save per params update
 # model
 MODEL_NAME = 'mlp'
 # optimizer
@@ -48,7 +50,7 @@ RIGHT_AGENT = 0
 #############################################
 
 
-def update_parames(rollouts, model, optimizer):
+def update_params(rollouts, model, optimizer):
     # advantage = (R_T + V_{s_{t+1}) - V_{s_t}
     advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
     advantages = (advantages - advantages.mean()) / (advantages.std() + EPS)
@@ -92,49 +94,41 @@ def main():
     # output dir
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
+        print('# Report  : make dir -> [{}]'.foramt(OUTPUT_DIR))
+        # make csv file
         with open(OUTPUT_DIR + '/log.csv', 'w') as file:
             writer = csv.writer(file)
-            writer.writerow(['num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
+            writer.writerow(['time', 'num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
+        print('# Report  : make csv file -> [{}]'.foramt(OUTPUT_DIR + '/log.csv'))
     else:
-        print('# caution: output dir [{}] already exist.'.format(OUTPUT_DIR))
-        answer = input('# continue? [y/n]: ')
+        print('# Caution : output dir [{}] already exist.'.format(OUTPUT_DIR))
+        answer = input('# Asking  : continue? [y/n]: ')
         if answer == 'y':
             pass
         else:
-            print('# bye :)')
+            print('# John Doe: bye.')
             exit()
 
+    print('\n# John Doe: Prepare to train...')
     # parallelize environment
-    envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in
-            range(NUM_ENVS)]
+    envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in range(NUM_ENVS)]
     envs = SubprocVecEnv(envs, context=None)
     obs_shape = envs.observation_space.shape[0]
     action_space = envs.action_space.n
     current_obs = torch.zeros(NUM_ENVS, obs_shape)
     obs = envs.reset()
     current_obs = convert_tensor_obs(obs, current_obs)
-    print('\n# Environment        : {}'.format(ENV_NAME))
-    print('# Representation     : {}'.format(REPRESENTATION))
-    print('# Rewards            : {}'.format(REWARDS))
-    print('# Observation shape  : {}'.format(obs_shape))
-    print('# Action space       : {}'.format(action_space))
-    print('# Num. of left agent : {}'.format(LEFT_AGENT))
-    print('# Num. of right agent: {}'.format(RIGHT_AGENT))
 
     # initialize rollouts
-    rollouts = RolloutStorage(PER_STEPS, NUM_ENVS, obs_shape, action_space, current_obs)
+    rollouts = RolloutStorage(PER_STEPS, NUM_ENVS, obs_shape, current_obs)
 
     # load model
-    print('\n# Load model: {}'.format(MODEL_NAME))
     model = ActorCritic(obs_shape, action_space, MODEL_NAME)
 
     # optimizer
-    print('\n# AdamOptimizer')
-    print('# Learning rage: {}'.format(LR))
     optimizer = optim.Adam(model.parameters(), lr=LR, eps=EPS)
 
     # Device
-    print('\n# Device: {}'.format(DEVICE))
     if DEVICE is not None:
         model.to(DEVICE)
         rollouts.cuda(DEVICE)
@@ -144,17 +138,43 @@ def main():
     episode_rewards = torch.zeros([NUM_ENVS, 1])
     final_rewards = torch.zeros([NUM_ENVS, 1])
     max_reward = 0
-
-    # start
-    print('\n# Start! :)')
     num_updates = int(NUM_STEPS // PER_STEPS // NUM_ENVS)
+
+    print('### Output dir: ', OUTPUT_DIR)
+    print('### Football')
+    print('# Environment        : ', ENV_NAME)
+    print('# Num. of envs       : ', NUM_ENVS)
+    print('# Representation     : ', REPRESENTATION)
+    print('# Rewards            : ', REWARDS)
+    print('# Observation shape  : ', obs_shape)
+    print('# Action space       : ', action_space)
+    print('# Num. of left agent : ', LEFT_AGENT)
+    print('# Num. of right agent: ', RIGHT_AGENT)
+    print('### Model')
+    print('# Base model   : ', MODEL_NAME)
+    print('# Learning rage: ', LR)
+    print('# Device       : ', DEVICE)
+    print('### Proximal Policy Optimization')
+    print('# Num. of steps       : ', NUM_STEPS)
+    print('# Update per steps    : ', PER_STEPS)
+    print('# Num. of updates     : ', num_updates)
+    print('# Dis. rate for reward: ', GAMMA)
+    print('# Clip param          : ', CLIP_PARAM)
+    print('# Max gradient norm   : ', MAX_GRAD_NORM)
+    print('# Num. of epochs      : ', NUM_EPOCHS)
+    print('# Batch size          : ', N_MINI_BATCH)
+
+    print('\n# John Doe: Start!')
+
     for update_i in range(num_updates):
         for step in range(PER_STEPS):
             with torch.no_grad():
                 value, action, action_log_prob = model.action(rollouts.observations[step])
+            action = action.unsqueeze(1)
+            action_log_prob = action_log_prob.unsqueeze(1)
 
             # step
-            obs, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
+            obs, reward, done, info = envs.step(action.cpu().numpy())
 
             # convert to pytorch tensor
             reward = torch.from_numpy(np.expand_dims(np.stack(reward), 1)).float()
@@ -173,35 +193,40 @@ def main():
             rollouts.insert(current_obs, action, action_log_prob, value, reward, masks)
 
         with torch.no_grad():
-            next_value = policy.get_value(rollouts.observations[-1]).detach()
+            next_value = model.get_value(rollouts.observations[-1]).detach()
 
         # Generalized advantage estimator
         rollouts.compute_returns(next_value, GAMMA)
 
         # update params
-        policy_loss, value_loss, entropy_loss, all_loss = update_params(rollouts, policy, optimizer)
+        policy_loss, value_loss, entropy_loss, all_loss = update_params(rollouts, model, optimizer)
 
         rollouts.after_update()
 
         mean_reward = final_rewards.mean()
-        print('# policy loss: {:.3f} | value loss: {:.3f} | mean reward: {:.3f}'.format(
+        print('# Log     : policy loss: {:.5f} | value loss: {:.5f} | mean reward: {:.3f}'.format(
             policy_loss, value_loss, mean_reward))
 
         # logging csv
-        with open(log_dir + '/log.csv', 'a') as file:
+        with open(OUTPUT_DIR + '/log.csv', 'a') as file:
             writer = csv.writer(file)
-            writer.writerow([update_i, all_loss, policy_loss, value_loss, current_obs, mean_reward])
+            writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, current_obs, mean_reward])
 
         if update_i % SAVE_INTERVAL == 0:
+            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR, 'model_%i.pt' % update_i))
             torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_%i.pt' % update_i))
 
         if max_reward < mean_reward:
+            print('# Report  : Updated max reward.')
+            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR, 'model_max_rewards.pt'))
             torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_max_rewards.pt'))
             max_reward = mean_reward
 
-    print('# Report: max reward: {}'.format(max_reward))
-    print('# bye :)')
+    print('# Report  : max reward: {}'.format(max_reward))
+    print('# John Doe: bye.')
 
 
 if __name__ == "__main__":
+    print('\n# John Doe: Hello.')
+
     main()

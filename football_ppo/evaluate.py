@@ -2,8 +2,8 @@ import torch
 import gym
 import gfootball
 
-from actor_critic import ActorCritic
-from utils import make_env, convert_tensor_obs
+from football_ppo.tools.actor_critic import ActorCritic
+from football_ppo.tools.utils import make_env, convert_tensor_obs
 from multiprocessing_env import DummyVecEnv, VecNormalize
 
 
@@ -35,9 +35,11 @@ for i in range(3000):
     episode_reward = 0.0
     while not done:
         with torch.no_grad():
-            _, action, _ = model.action(current_obs, deterministic=True)
+            _, action, _ = model.action(current_obs)
 
-        obs, reward, done, _ = env.step(action.squeeze(1).cpu().numpy())
+        action = action.unsqueeze(1)
+
+        obs, reward, done, _ = env.step(action.numpy())
 
         episode_reward += reward
 

@@ -3,10 +3,8 @@
 - Google Research Football ([GitHub](https://github.com/google-research/football))
 
 # 次やること
-- マルチエージェント対応  
-- 並列処理  
+- マルチエージェント対応   
 - GCN構築  
-
 
 # bot vs bot  
 ``

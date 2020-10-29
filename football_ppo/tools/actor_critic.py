@@ -21,15 +21,11 @@ class ActorCritic(nn.Module):
         else:
             raise ValueError('# Error   :Not expected model [{}].'.format(model_name))
 
-        self.actor_critic = Model(obs_shape)
-        self.action_mean = init_layer(nn.Linear(128, action_space))
-        self.softmax = nn.Softmax(1)
+        self.actor_critic = Model(obs_shape, action_space)
 
     def action(self, inputs):
-        actor_feature, value = self.actor_critic(inputs)
-        action_mean = self.action_mean(actor_feature)
-        action_prob = self.softmax(action_mean)
-        dist = Categorical(action_prob)
+        policy, value = self.actor_critic(inputs)
+        dist = Categorical(action_policy)
         action = dist.sample()
         action_log_probs = dist.log_prob(action)
 
@@ -40,11 +36,9 @@ class ActorCritic(nn.Module):
         return value
 
     def evaluate_actions(self, inputs, action):
-        actor_feature, value = self.actor_critic(inputs)
-        action_mean = self.action_mean(actor_feature)
-        action_prob = self.softmax(action_mean)
-        dist = Categorical(action_prob)
+        policy, value = self.actor_critic(inputs)
+        dist = Categorical(policy)
         action_log_probs = dist.log_prob(action)
-        dist_entropy = dist.entropy().sum(-1).mean()
+        dist_entropy = dist.entropy().mean()
 
         return value, action_log_probs, dist_entropy

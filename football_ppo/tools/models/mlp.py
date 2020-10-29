@@ -12,16 +12,18 @@ def init_layer(m):
 
 
 class MLP(nn.Module):
-    def __init__(self, num_inputs):
+    def __init__(self, num_inputs, action_space):
         super(MLP, self).__init__()
 
-        self.linear1 = init_layer(nn.Linear(num_inputs, 64))
-        self.linear2 = init_layer(nn.Linear(64, 128))
-        self.linear3 = init_layer(nn.Linear(128, 128))
-        self.linear4 = init_layer(nn.Linear(128, 128))
-        self.actor_hidden = init_layer(nn.Linear(128, 128))
-        self.critic = init_layer(nn.Linear(128, 1))
+        self.linear1 = init_layer(nn.Linear(num_inputs, 256))
+        self.linear2 = init_layer(nn.Linear(256, 512))
+        self.linear3 = init_layer(nn.Linear(512, 512))
+        self.linear4 = init_layer(nn.Linear(512, 512))
+        self.linear5 = init_layer(nn.Linear(512, 256))
+        self.actor = init_layer(nn.Linear(256, action_space))
+        self.critic = init_layer(nn.Linear(256, 1))
         self.tanh = nn.Tanh()
+        self.softmax = nn.Softmax(1)
 
         self.train()
 
@@ -30,7 +32,8 @@ class MLP(nn.Module):
         x = self.tanh(self.linear2(x))
         x = self.tanh(self.linear3(x))
         x = self.tanh(self.linear4(x))
-        actor_feature = self.tanh(self.actor_hidden(x))
-        critic = self.critic(x)
+        x = self.tanh(self.linear5(x))
+        policy = self.softmax(self.actor(x))
+        value = self.critic(x)
 
-        return actor_feature, critic
+        return policy, value

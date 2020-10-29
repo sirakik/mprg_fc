@@ -18,7 +18,7 @@ import gfootball
 
 from tools.memory import RolloutStorage
 from tools.actor_critic import ActorCritic
-from tools.utils import make_env, convert_tensor_obs
+from tools.utils import make_env, convert_tensor_obs, print_log
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 
 
@@ -36,6 +36,7 @@ NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
 SAVE_INTERVAL = 500 # Save per params update
+PRINT_INTERVAL = 100
 # model
 MODEL_NAME = 'mlp'
 # optimizer
@@ -91,7 +92,6 @@ def update_params(rollouts, model, optimizer):
 
     return np.mean(policy_losses), np.mean(value_losses), np.mean(entropy_losses), np.mean(losses)
 
-
 def main():
     # output dir
     if not os.path.exists(OUTPUT_DIR):
@@ -107,11 +107,14 @@ def main():
             exit()
 
     # make csv file
-    with open(OUTPUT_DIR + '/log.csv', 'w') as file:
+    with open(OUTPUT_DIR + '/loss.csv', 'w') as file:
         writer = csv.writer(file)
-        writer.writerow(
-            ['time', 'num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss', 'mean_reward'])
-    print('# Report  : make csv file -> [{}]'.format(OUTPUT_DIR + '/log.csv'))
+        writer.writerow(['time', 'num_updates', 'all_loss', 'policy_loss', 'value_loss', 'entropy_loss'])
+    print('# Report  : make csv file -> [{}]'.format(OUTPUT_DIR + '/loss.csv'))
+    with open(OUTPUT_DIR + '/reward.csv', 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(['reward'])
+    print('# Report  : make csv file -> [{}]'.format(OUTPUT_DIR + '/reward.csv'))
 
     print('\n# John Doe: Prepare to train...')
     # parallelize environment
@@ -141,32 +144,32 @@ def main():
     # logging variables
     episode_rewards = torch.zeros([NUM_ENVS, 1])
     final_rewards = torch.zeros([NUM_ENVS, 1])
-    max_reward = 0
+    max_reward = -100
     num_updates = int(NUM_STEPS // PER_STEPS // NUM_ENVS)
 
-    print('### Output dir: ', OUTPUT_DIR)
-    print('### Football')
-    print('# Environment        : ', ENV_NAME)
-    print('# Num. of envs       : ', NUM_ENVS)
-    print('# Representation     : ', REPRESENTATION)
-    print('# Rewards            : ', REWARDS)
-    print('# Observation shape  : ', obs_shape)
-    print('# Action space       : ', action_space)
-    print('# Num. of left agent : ', LEFT_AGENT)
-    print('# Num. of right agent: ', RIGHT_AGENT)
-    print('### Model')
-    print('# Base model   : ', MODEL_NAME)
-    print('# Learning rage: ', LR)
-    print('# Device       : ', DEVICE)
-    print('### Proximal Policy Optimization')
-    print('# Num. of steps       : ', NUM_STEPS)
-    print('# Update per steps    : ', PER_STEPS)
-    print('# Num. of updates     : ', num_updates)
-    print('# Dis. rate for reward: ', GAMMA)
-    print('# Clip param          : ', CLIP_PARAM)
-    print('# Max gradient norm   : ', MAX_GRAD_NORM)
-    print('# Num. of epochs      : ', NUM_EPOCHS)
-    print('# Batch size          : ', N_MINI_BATCH)
+    print_log('### Output dir: {}'.format(OUTPUT_DIR), OUTPUT_DIR, mode='w')
+    print_log('### Football', OUTPUT_DIR)
+    print_log('# Environment        : {}'.format(ENV_NAME), OUTPUT_DIR)
+    print_log('# Num. of envs       : {}'.format(NUM_ENVS), OUTPUT_DIR)
+    print_log('# Representation     : {}'.format(REPRESENTATION), OUTPUT_DIR)
+    print_log('# Rewards            : {}'.format(REWARDS), OUTPUT_DIR)
+    print_log('# Observation shape  : {}'.format(obs_shape), OUTPUT_DIR)
+    print_log('# Action space       : {}'.format(action_space), OUTPUT_DIR)
+    print_log('# Num. of left agent : {}'.format(LEFT_AGENT), OUTPUT_DIR)
+    print_log('# Num. of right agent: {}'.format(RIGHT_AGENT), OUTPUT_DIR)
+    print_log('### Model', OUTPUT_DIR)
+    print_log('# Base model   : {}'.format(MODEL_NAME), OUTPUT_DIR)
+    print_log('# Learning rage: {}'.format(LR), OUTPUT_DIR)
+    print_log('# Device       : {}'.format(DEVICE), OUTPUT_DIR)
+    print_log('### Proximal Policy Optimization', OUTPUT_DIR)
+    print_log('# Num. of steps       : {}'.format(NUM_STEPS), OUTPUT_DIR)
+    print_log('# Update per steps    : {}'.format(PER_STEPS), OUTPUT_DIR)
+    print_log('# Num. of updates     : {}'.format(num_updates), OUTPUT_DIR)
+    print_log('# Dis. rate for reward: {}'.format(GAMMA), OUTPUT_DIR)
+    print_log('# Clip param          : {}'.format(CLIP_PARAM), OUTPUT_DIR)
+    print_log('# Max gradient norm   : {}'.format(MAX_GRAD_NORM), OUTPUT_DIR)
+    print_log('# Num. of epochs      : {}'.format(NUM_EPOCHS), OUTPUT_DIR)
+    print_log('# Batch size          : {}'.format(N_MINI_BATCH), OUTPUT_DIR)
 
     print('\n# John Doe: Start!')
 
@@ -188,6 +191,10 @@ def main():
             episode_rewards += reward
             final_rewards *= masks
             final_rewards += (1 - masks) * episode_rewards
+            if masks == 0.0:
+                with open(OUTPUT_DIR + '/reward.csv', 'a') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([episode_rewards.mean().item()])
             episode_rewards *= masks
 
             # Update current observation tensor
@@ -208,22 +215,24 @@ def main():
         rollouts.after_update()
 
         mean_reward = final_rewards.mean().item()
-        print('# Log     : policy loss: {:.5f} | value loss: {:.5f} | mean reward: {:.3f}'.format(
-            policy_loss, value_loss, mean_reward))
 
         # logging csv
         with open(OUTPUT_DIR + '/log.csv', 'a') as file:
             writer = csv.writer(file)
-            writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, entropy_loss, mean_reward])
+            writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, entropy_loss])
+
+        if update_i % PRINT_INTERVAL == 0:
+            print('# Log     : update: [{}/{}] | policy loss: {:.7f} | value loss: {:.7f} | mean reward: {:.3f}'.format(
+                update_i, num_updates, policy_loss, value_loss, mean_reward), OUTPUT_DIR)
 
         if update_i % SAVE_INTERVAL == 0:
-            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR, 'model_%i.pt' % update_i))
+            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR + '/model_%i.pt' % update_i))
             torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_%i.pt' % update_i))
 
         if max_reward < mean_reward:
             print('# Report  : Updated max reward.')
-            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR, 'model_max_rewards.pt'))
-            torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_max_rewards.pt'))
+            print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR + '/model_max_reward.pt'))
+            torch.save(model.state_dict(), os.path.join(OUTPUT_DIR, 'model_max_reward.pt'))
             max_reward = mean_reward
 
     print('# Report  : max reward: {}'.format(max_reward))

@@ -26,3 +26,11 @@ def convert_tensor_obs(obs, current_obs):
     current_obs[:, :] = obs
 
     return current_obs
+
+
+def print_log(text, output_dir, is_print=True, is_log=True, mode='a'):
+    if is_print:
+        print(text)
+    if is_log:
+        with open('{}/log.txt'.format(output_dir), mode) as f:
+            f.write(text + '\n')

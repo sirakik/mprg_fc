@@ -25,7 +25,7 @@ class ActorCritic(nn.Module):
 
     def action(self, inputs):
         policy, value = self.actor_critic(inputs)
-        dist = Categorical(action_policy)
+        dist = Categorical(policy)
         action = dist.sample()
         action_log_probs = dist.log_prob(action)
 

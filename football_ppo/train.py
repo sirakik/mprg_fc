@@ -25,8 +25,8 @@ from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 ############## Hyperparameters ##############
 OUTPUT_DIR = 'log/gomi'
 
-NUM_ENVS = 16
-NUM_STEPS = 50000000  # Number of steps
+NUM_ENVS = 32
+NUM_STEPS = 500000000  # Number of steps
 PER_STEPS = 512  # Update parameters per steps
 
 GAMMA = 0.99  # Discount rate for reward
@@ -36,7 +36,7 @@ NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
 SAVE_INTERVAL = 500 # Save per params update
-PRINT_INTERVAL = 100
+PRINT_INTERVAL = 10
 # model
 MODEL_NAME = 'mlp'
 # optimizer
@@ -191,7 +191,7 @@ def main():
             episode_rewards += reward
             final_rewards *= masks
             final_rewards += (1 - masks) * episode_rewards
-            if masks == 0.0:
+            if True in done:
                 with open(OUTPUT_DIR + '/reward.csv', 'a') as file:
                     writer = csv.writer(file)
                     writer.writerow([episode_rewards.mean().item()])
@@ -217,12 +217,12 @@ def main():
         mean_reward = final_rewards.mean().item()
 
         # logging csv
-        with open(OUTPUT_DIR + '/log.csv', 'a') as file:
+        with open(OUTPUT_DIR + '/loss.csv', 'a') as file:
             writer = csv.writer(file)
             writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, entropy_loss])
 
         if update_i % PRINT_INTERVAL == 0:
-            print('# Log     : update: [{}/{}] | policy loss: {:.7f} | value loss: {:.7f} | mean reward: {:.3f}'.format(
+            print_log('# Log     : update: [{}/{}] | policy loss: {:.7f} | value loss: {:.7f} | mean reward: {:.3f}'.format(
                 update_i, num_updates, policy_loss, value_loss, mean_reward), OUTPUT_DIR)
 
         if update_i % SAVE_INTERVAL == 0:

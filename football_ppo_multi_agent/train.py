@@ -47,8 +47,8 @@ DEVICE = 'cuda:0'
 ENV_NAME = '11_vs_11_stochastic'
 REPRESENTATION = 'simple115v2'
 REWARDS = 'scoring,checkpoints'
-LEFT_AGENT = 1
-RIGHT_AGENT = 0
+LEFT_AGENT = 3
+RIGHT_AGENT = 0 #  Not support RIGHT_AGENT > 0
 #############################################
 
 

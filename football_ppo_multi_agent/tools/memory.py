@@ -3,13 +3,13 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
 
 class RolloutStorage(object):
-    def __init__(self, per_steps, num_processes, obs_shape, start_obs):
+    def __init__(self, per_steps, num_processes, obs_shape, start_obs, num_agents):
         self.observations = torch.zeros(per_steps + 1, num_processes, obs_shape)
-        self.rewards = torch.zeros(per_steps, num_processes, 1)
+        self.rewards = torch.zeros(per_steps, num_processes, num_agents)
         self.value_preds = torch.zeros(per_steps + 1, num_processes, 1)
         self.returns = torch.zeros(per_steps + 1, num_processes, 1)
-        self.action_log_probs = torch.zeros(per_steps, num_processes, 1)
-        self.actions = torch.zeros(per_steps, num_processes, 1)
+        self.action_log_probs = torch.zeros(per_steps, num_processes, num_agents)
+        self.actions = torch.zeros(per_steps, num_processes, num_agents)
         self.masks = torch.ones(per_steps + 1, num_processes, 1)
 
         self.per_steps = per_steps

@@ -45,9 +45,7 @@ class MLP(nn.Module):
         x = self.tanh(self.linear5(x))
 
         # actor
-        policies = []
-        for layer in self.actor_layers:
-            policies.append(self.softmax(layer(x)))
+        policies = torch.cat([self.softmax(layer(x)).unsqueeze(0) for layer in self.actor_layers], dim=0)
 
         # critic
         value = self.critic(x)

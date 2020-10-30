@@ -18,6 +18,7 @@ import gfootball
 from tools.memory import RolloutStorage
 from tools.actor_critic import ActorCritic
 from tools.utils import make_env, convert_tensor_obs, print_log
+from tools.multi_agent_utils import modify_obs
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 
 
@@ -119,10 +120,11 @@ def main():
     # parallelize environment
     envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in range(NUM_ENVS)]
     envs = SubprocVecEnv(envs, context=None)
-    obs_shape = envs.observation_space.shape[0]
-    action_space = envs.action_space.n
+    obs_shape = envs.observation_space.shape[1]  # envs.observation_space.shape -> (11, 115)
+    action_space = envs.action_space.nvec[0] # instead of [envs.action_space.n]
     current_obs = torch.zeros(NUM_ENVS, obs_shape)
     obs = envs.reset()
+    obs = modify_obs(obs) # add
     current_obs = convert_tensor_obs(obs, current_obs)
 
     # initialize rollouts
@@ -141,8 +143,8 @@ def main():
         current_obs.to(DEVICE)
 
     # logging variables
-    episode_rewards = torch.zeros([NUM_ENVS, 1])
-    final_rewards = torch.zeros([NUM_ENVS, 1])
+    episode_rewards = torch.zeros([NUM_ENVS, LEFT_AGENT])
+    final_rewards = torch.zeros([NUM_ENVS, LEFT_AGENT])
     max_reward = -100
     num_updates = int(NUM_STEPS // PER_STEPS // NUM_ENVS)
 
@@ -176,14 +178,15 @@ def main():
         for step in range(PER_STEPS):
             with torch.no_grad():
                 value, action, action_log_prob = model.action(rollouts.observations[step])
-            action = action.unsqueeze(1)
-            action_log_prob = action_log_prob.unsqueeze(1)
+
+            action = action.transpose(1, 0)
+            action_log_prob = action_log_prob.transpose(1, 0)
 
             # step
             obs, reward, done, info = envs.step(action.cpu().numpy())
 
             # convert to pytorch tensor
-            reward = torch.from_numpy(np.expand_dims(np.stack(reward), 1)).float()
+            reward = torch.from_numpy(np.stack(reward)).float()
             masks = torch.FloatTensor([[0.0] if d else [1.0] for d in done])
 
             # update reward info for logging
@@ -193,11 +196,12 @@ def main():
             if True in done:
                 with open(OUTPUT_DIR + '/reward.csv', 'a') as file:
                     writer = csv.writer(file)
-                    writer.writerow([episode_rewards.mean().item()])
+                    writer.writerow([episode_rewards.mean(0).item()])
             episode_rewards *= masks
 
             # Update current observation tensor
             current_obs *= masks
+            obs = modify_obs(obs) # add
             current_obs = convert_tensor_obs(obs, current_obs)
 
             rollouts.insert(current_obs, action, action_log_prob, value, reward, masks)

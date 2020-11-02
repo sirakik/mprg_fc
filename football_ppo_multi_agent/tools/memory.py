@@ -4,6 +4,8 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
 class RolloutStorage(object):
     def __init__(self, per_steps, num_processes, obs_shape, start_obs, num_agents):
+        self.num_agents = num_agents
+        self.num_processes = num_processes
         self.observations = torch.zeros(per_steps + 1, num_processes, obs_shape)
         self.rewards = torch.zeros(per_steps, num_processes, num_agents)
         self.value_preds = torch.zeros(per_steps + 1, num_processes, 1)
@@ -41,8 +43,7 @@ class RolloutStorage(object):
 
     # Generalized advantage estimator
     def compute_returns(self, next_value, gamma):
-        self.returns[-1] = next_value
-        # Subtraction of value_{s_t} is not done here
+        self.returns[-1] = next_value.expand(self.num_processes, self.num_agents)
         for step in reversed(range(self.rewards.size(0))):
             self.returns[step] = self.rewards[step] + self.masks[step + 1] * gamma * self.returns[step + 1]
 
@@ -56,9 +57,9 @@ class RolloutStorage(object):
         for indices in sampler:
             observations_batch = self.observations[:-1].view(-1, *self.observations.size()[2:])[indices]
             actions_batch = self.actions.view(-1, self.actions.size(-1))[indices]
-            return_batch = self.returns[:-1].view(-1, 1)[indices]
+            return_batch = self.returns[:-1].view(-1, self.actions.size(-1))[indices]
             masks_batch = self.masks[:-1].view(-1, 1)[indices]
-            old_action_log_probs_batch = self.action_log_probs.view(-1, 1)[indices]
-            adv = advantages.view(-1, 1)[indices]
+            old_action_log_probs_batch = self.action_log_probs.view(-1, self.actions.size(-1))[indices]
+            adv = advantages.view(-1, self.actions.size(-1))[indices]
 
             yield observations_batch, actions_batch, return_batch, masks_batch, old_action_log_probs_batch, adv

@@ -35,10 +35,13 @@ class ActorCritic(nn.Module):
         _, value = self.actor_critic(inputs)
         return value
 
-    def evaluate_actions(self, inputs, action):
+    def evaluate_actions(self, inputs, actions):
         policies, value = self.actor_critic(inputs)
-        dist = Categorical(policy)
-        action_log_probs = dist.log_prob(action)
-        dist_entropy = dist.entropy().mean()
+        dists = [Categorical(policy) for policy in policies]
+        actions = actions.transpose(1, 0).unsqueeze(-1)
+        action_log_probs = [e[0].log_prob(e[1]) for e in zip(dists, actions)]
+        action_log_probs = torch.stack(action_log_probs)  # tensor in list -> tensors
+        dist_entropies = [dist.entropy() for dist in dists]
+        dist_entropy = torch.stack(dist_entropies).mean()
 
         return value, action_log_probs, dist_entropy

@@ -48,7 +48,7 @@ DEVICE = 'cuda:0'
 ENV_NAME = '11_vs_11_stochastic'
 REPRESENTATION = 'simple115v2'
 REWARDS = 'scoring,checkpoints'
-LEFT_AGENT = 3
+LEFT_AGENT = 11
 RIGHT_AGENT = 0 #  Not support RIGHT_AGENT > 0
 #############################################
 
@@ -68,8 +68,11 @@ def update_params(rollouts, model, optimizer):
         for obs, actions, returns, masks, old_action_log_probs, adv_targ in samples:
             values, action_log_probs, dist_entropy = model.evaluate_actions(obs, actions)
 
+            old_action_log_probs = old_action_log_probs.transpose(1, 0).unsqueeze(-1)
+
             # Policy loss
             ratio = torch.exp(action_log_probs - old_action_log_probs)
+            adv_targ = adv_targ.transpose(1, 0).unsqueeze(-1)
             surr1 = ratio * adv_targ
             surr2 = torch.clamp(ratio, 1.0 - CLIP_PARAM, 1.0 + CLIP_PARAM) * adv_targ
             policy_loss = -torch.min(surr1, surr2).mean()

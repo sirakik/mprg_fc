@@ -9,7 +9,7 @@ class RolloutStorage(object):
         self.observations = torch.zeros(per_steps + 1, num_processes, obs_shape)
         self.rewards = torch.zeros(per_steps, num_processes, num_agents)
         self.value_preds = torch.zeros(per_steps + 1, num_processes, 1)
-        self.returns = torch.zeros(per_steps + 1, num_processes, 1)
+        self.returns = torch.zeros(per_steps + 1, num_processes, num_agents)
         self.action_log_probs = torch.zeros(per_steps, num_processes, num_agents)
         self.actions = torch.zeros(per_steps, num_processes, num_agents)
         self.masks = torch.ones(per_steps + 1, num_processes, 1)

@@ -78,7 +78,7 @@ def update_params(rollouts, model, optimizer):
             policy_loss = -torch.min(surr1, surr2).mean()
 
             # Value loss
-            value_loss = F.mse_loss(returns, values)
+            value_loss = F.mse_loss(returns.mean(1, keepdim=True), values)
 
             # Losses
             loss = policy_loss + 0.5 * value_loss - 0.01 * dist_entropy
@@ -131,10 +131,10 @@ def main():
     current_obs = convert_tensor_obs(obs, current_obs)
 
     # initialize rollouts
-    rollouts = RolloutStorage(PER_STEPS, NUM_ENVS, obs_shape, current_obs)
+    rollouts = RolloutStorage(PER_STEPS, NUM_ENVS, obs_shape, current_obs, LEFT_AGENT)
 
     # load model
-    model = ActorCritic(obs_shape, action_space, MODEL_NAME)
+    model = ActorCritic(obs_shape, action_space, MODEL_NAME, LEFT_AGENT)
 
     # optimizer
     optimizer = optim.Adam(model.parameters(), lr=LR, eps=EPS)
@@ -199,7 +199,7 @@ def main():
             if True in done:
                 with open(OUTPUT_DIR + '/reward.csv', 'a') as file:
                     writer = csv.writer(file)
-                    writer.writerow([episode_rewards.mean(0).item()])
+                    writer.writerow(episode_rewards.mean(0).numpy())
             episode_rewards *= masks
 
             # Update current observation tensor

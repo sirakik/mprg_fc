@@ -29,7 +29,7 @@ class ActorCritic(nn.Module):
         actions = dists.sample()
         action_log_probs = dists.log_prob(actions)
 
-        return value, action, action_log_probs
+        return value, actions, action_log_probs
 
     def get_value(self, inputs):
         _, value = self.actor_critic(inputs)

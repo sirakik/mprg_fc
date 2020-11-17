@@ -18,30 +18,36 @@ class ActorCritic(nn.Module):
 
         if model_name == 'mlp':
             from tools.models.mlp import MLP as Model
+        elif model_name == 'gcn':
+            from tools.models.gcn import GCN as Model
+            obs_shape = 9
         else:
             raise ValueError('# Error   :Not expected model [{}].'.format(model_name))
 
         self.actor_critic = Model(obs_shape, action_space, num_agents)
 
     def action(self, inputs):
-        policies, value = self.actor_critic(inputs)
+        policies, values = self.actor_critic(inputs)
         dists = Categorical(policies)
         actions = dists.sample()
         action_log_probs = dists.log_prob(actions)
+        values = values.squeeze().transpose(1, 0)
 
-        return value, actions, action_log_probs
+        return values, actions, action_log_probs
 
     def get_value(self, inputs):
-        _, value = self.actor_critic(inputs)
-        return value
+        _, values = self.actor_critic(inputs)
+        values = values.squeeze().transpose(1, 0)
+        return values
 
     def evaluate_actions(self, inputs, actions):
-        policies, value = self.actor_critic(inputs)
+        policies, values = self.actor_critic(inputs)
         dists = [Categorical(policy) for policy in policies]
         actions = actions.transpose(1, 0).unsqueeze(-1)
         action_log_probs = [e[0].log_prob(e[1]) for e in zip(dists, actions)]
         action_log_probs = torch.stack(action_log_probs)  # tensor in list -> tensors
         dist_entropies = [dist.entropy() for dist in dists]
         dist_entropy = torch.stack(dist_entropies).mean()
+        values = values.squeeze().transpose(1, 0)
 
-        return value, action_log_probs, dist_entropy
+        return values, action_log_probs, dist_entropy

@@ -12,6 +12,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 import gym
+
 gym.logger.set_level(40)
 import gfootball
 
@@ -21,11 +22,13 @@ from tools.utils import make_env, convert_tensor_obs, print_log
 from tools.multi_agent_utils import modify_obs
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 
+from tools.reward_tools import my_reward_ball
+from tools.graph_node_feature import ConvertNodeFeature
 
 ############## Hyperparameters ##############
 OUTPUT_DIR = 'log/gomi'
 
-NUM_ENVS = 32
+NUM_ENVS = 48
 NUM_STEPS = 500000000  # Number of steps
 PER_STEPS = 512  # Update parameters per steps
 
@@ -35,21 +38,29 @@ MAX_GRAD_NORM = 0.5  # Max gradient norm (clipping)
 NUM_EPOCHS = 2  # Number of update epochs
 N_MINI_BATCH = 8  # Number of minibatches to split one epoch to
 
-SAVE_INTERVAL = 500 # Save per params update
+SAVE_INTERVAL = 500  # Save per params update
 PRINT_INTERVAL = 10
-# model
-MODEL_NAME = 'mlp'
+
 # optimizer
 LR = 0.0001
 EPS = 1e-5
 # device
 DEVICE = 'cuda:0'
 # environment
-ENV_NAME = '11_vs_11_stochastic'
+ENV_NAME = '11_vs_11_easy_stochastic'
 REPRESENTATION = 'simple115v2'
-REWARDS = 'scoring,checkpoints'
+REWARDS = 'scoring'
 LEFT_AGENT = 11
-RIGHT_AGENT = 0 #  Not support RIGHT_AGENT > 0
+RIGHT_AGENT = 0  # Not support RIGHT_AGENT > 0
+
+reward_ball = True
+
+# model
+MODEL_NAME = 'gcn'
+graph_model = True
+if graph_model:
+    Node_f = ConvertNodeFeature(NUM_ENVS, DEVICE)
+
 #############################################
 
 
@@ -66,6 +77,8 @@ def update_params(rollouts, model, optimizer):
         samples = rollouts.sample(advantages, N_MINI_BATCH)
 
         for obs, actions, returns, masks, old_action_log_probs, adv_targ in samples:
+            if graph_model:
+                obs = Node_f.get_node_feature(obs)
             values, action_log_probs, dist_entropy = model.evaluate_actions(obs, actions)
 
             old_action_log_probs = old_action_log_probs.transpose(1, 0).unsqueeze(-1)
@@ -78,7 +91,7 @@ def update_params(rollouts, model, optimizer):
             policy_loss = -torch.min(surr1, surr2).mean()
 
             # Value loss
-            value_loss = F.mse_loss(returns.mean(1, keepdim=True), values)
+            value_loss = (F.mse_loss(returns, values))
 
             # Losses
             loss = policy_loss + 0.5 * value_loss - 0.01 * dist_entropy
@@ -94,6 +107,7 @@ def update_params(rollouts, model, optimizer):
             losses.append(loss.item())
 
     return np.mean(policy_losses), np.mean(value_losses), np.mean(entropy_losses), np.mean(losses)
+
 
 def main():
     # output dir
@@ -121,13 +135,14 @@ def main():
 
     print('\n# John Doe: Prepare to train...')
     # parallelize environment
-    envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in range(NUM_ENVS)]
+    envs = [(lambda _i=i: make_env(ENV_NAME, REPRESENTATION, REWARDS, LEFT_AGENT, RIGHT_AGENT, _i)) for i in
+            range(NUM_ENVS)]
     envs = SubprocVecEnv(envs, context=None)
     obs_shape = envs.observation_space.shape[1]  # envs.observation_space.shape -> (11, 115)
-    action_space = envs.action_space.nvec[0] # instead of [envs.action_space.n]
+    action_space = envs.action_space.nvec[0]  # instead of [envs.action_space.n]
     current_obs = torch.zeros(NUM_ENVS, obs_shape)
     obs = envs.reset()
-    obs = modify_obs(obs) # add
+    obs = modify_obs(obs)  # add
     current_obs = convert_tensor_obs(obs, current_obs)
 
     # initialize rollouts
@@ -180,13 +195,19 @@ def main():
     for update_i in range(num_updates):
         for step in range(PER_STEPS):
             with torch.no_grad():
-                value, action, action_log_prob = model.action(rollouts.observations[step])
+                obs = rollouts.observations[step]
+                if graph_model:
+                    obs = Node_f.get_node_feature(obs)
+                value, action, action_log_prob = model.action(obs)
 
             action = action.transpose(1, 0)
             action_log_prob = action_log_prob.transpose(1, 0)
 
             # step
             obs, reward, done, info = envs.step(action.cpu().numpy())
+
+            if reward_ball:
+                reward = my_reward_ball(reward, obs[:, 0, 88])
 
             # convert to pytorch tensor
             reward = torch.from_numpy(np.stack(reward)).float()
@@ -199,18 +220,21 @@ def main():
             if True in done:
                 with open(OUTPUT_DIR + '/reward.csv', 'a') as file:
                     writer = csv.writer(file)
-                    writer.writerow(episode_rewards.mean(0).numpy())
+                    writer.writerow(final_rewards.mean(0).numpy())
             episode_rewards *= masks
 
             # Update current observation tensor
             current_obs *= masks
-            obs = modify_obs(obs) # add
+            obs = modify_obs(obs)  # add
             current_obs = convert_tensor_obs(obs, current_obs)
 
             rollouts.insert(current_obs, action, action_log_prob, value, reward, masks)
 
         with torch.no_grad():
-            next_value = model.get_value(rollouts.observations[-1]).detach()
+            obs = rollouts.observations[-1]
+            if graph_model:
+                obs = Node_f.get_node_feature(obs)
+            next_value = model.get_value(obs).detach()
 
         # Generalized advantage estimator
         rollouts.compute_returns(next_value, GAMMA)
@@ -228,8 +252,9 @@ def main():
             writer.writerow([datetime.datetime.now(), update_i, all_loss, policy_loss, value_loss, entropy_loss])
 
         if update_i % PRINT_INTERVAL == 0:
-            print_log('# Log     : update: [{}/{}] | policy loss: {:.7f} | value loss: {:.7f} | mean reward: {:.3f}'.format(
-                update_i, num_updates, policy_loss, value_loss, mean_reward), OUTPUT_DIR)
+            print_log(
+                '# Log     : update: [{}/{}] | policy loss: {:.7f} | value loss: {:.7f} | mean reward: {:.3f}'.format(
+                    update_i, num_updates, policy_loss, value_loss, mean_reward), OUTPUT_DIR)
 
         if update_i % SAVE_INTERVAL == 0:
             print('# Report  : Save model -> [{}]'.format(OUTPUT_DIR + '/model_%i.pt' % update_i))
